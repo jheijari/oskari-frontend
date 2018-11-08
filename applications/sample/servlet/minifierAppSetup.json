@@ -24,9 +24,6 @@
                 "ui-components": {
                     "bundlePath": "../../../packages/framework/bundle/"
                 },
-                "mapanalysis": {
-                    "bundlePath": "../../../packages/mapping/ol3/"
-                },
                 "mapfull": {
                     "bundlePath": "../../../packages/framework/bundle/"
                 },
@@ -236,15 +233,6 @@
             }
         }
     }, {
-        "bundlename": "analyse",
-        "metadata": {
-            "Import-Bundle": {
-                "analyse": {
-                    "bundlePath": "../../../packages/analysis/ol3/"
-                }
-            }
-        }
-    }, {
         "bundlename": "myplacesimport",
         "metadata": {
             "Import-Bundle": {
@@ -340,16 +328,6 @@
             "Import-Bundle": {
                 "admin-users": {
                     "bundlePath": "../../../packages/framework/bundle/"
-                }
-            }
-        }
-    }, {
-        "bundlename": "admin-wfs-search-channel",
-        "lazy": true,
-        "metadata": {
-            "Import-Bundle": {
-                "admin-wfs-search-channel": {
-                    "bundlePath": "../../../packages/tampere/bundle/"
                 }
             }
         }
