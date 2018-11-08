@@ -30,6 +30,16 @@ export default class VectorTileLayer extends AbstractLayer {
         }
     }
     /**
+     * @method getExternalStyleDef
+     * @param {String} styleName
+     * @return {Object}
+     */
+    getExternalStyleDef (styleName) {
+        if (this._options && this._options.externalStyles) {
+            return this._options.externalStyles[styleName];
+        }
+    }
+    /**
      * @method getCurrentStyleDef
      * @return {Object/null}
      */
@@ -38,5 +48,15 @@ export default class VectorTileLayer extends AbstractLayer {
             return null;
         }
         return this.getStyleDef(this._currentStyle.getName());
+    }
+    /**
+     * @method getCurrentExternalStyleDef
+     * @return {Object/null}
+     */
+    getCurrentExternalStyleDef () {
+        if (!this._currentStyle) {
+            return null;
+        }
+        return this.getExternalStyleDef(this._currentStyle.getName());
     }
 }
