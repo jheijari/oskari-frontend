@@ -7,6 +7,7 @@ import { createDefaultStyle } from 'ol/style/Style';
 import VectorTileModelBuilder from './VectorTileModelBuilder';
 import VectorTileLayer from './VectorTileLayer';
 import styleGenerator from './styleGenerator';
+import '../../../../../libraries/ol-mapbox-style/v3.3.0/olms';
 
 import { LAYER_ID, LAYER_HOVER, LAYER_TYPE, FTR_PROPERTY_ID } from '../../domain/constants';
 
@@ -68,6 +69,10 @@ Oskari.clazz.defineES('Oskari.mapframework.mapmodule.VectorTileLayerPlugin',
             const hoverOptions = layer.getHoverOptions();
             const styleDef = layer.getCurrentStyleDef();
             const factory = this.mapModule.getStyle.bind(this.mapModule);
+            const mbStyle = layer.getCurrentExternalStyleDef();
+            if (mbStyle) {
+                return olms.styleFunction(mbStyle);
+            }
             return styleDef ? styleGenerator(factory, styleDef, hoverOptions, this.hoverState) : createDefaultStyle;
         }
         /**
