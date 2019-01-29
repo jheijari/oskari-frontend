@@ -15,6 +15,7 @@ Oskari.clazz.defineES('Oskari.wfsmvt.WfsMvtLayerPlugin',
             this._clazz = 'Oskari.wfsmvt.WfsMvtLayerPlugin';
             this._log = Oskari.log('WfsMvtLayerPlugin');
             this.layertype = 'wfs';
+            this._subscribers = new Set();
         }
         _initImpl () {
             super._initImpl();
@@ -23,13 +24,23 @@ Oskari.clazz.defineES('Oskari.wfsmvt.WfsMvtLayerPlugin',
                 'Oskari.mapframework.bundle.mapwfs2.service.WFSLayerService', sandbox);
 
             sandbox.registerService(this.WFSLayerService);
-            this.reqEventHandler = new ReqEventHandler(sandbox);
+            this.reqEventHandler = new ReqEventHandler(sandbox, this);
         }
         _createPluginEventHandlers () {
-            return Object.assign(super._createPluginEventHandlers(), this.reqEventHandler.createEventHandlers(this));
+            return Object.assign(super._createPluginEventHandlers(), this.reqEventHandler.createEventHandlers());
         }
         _createRequestHandlers () {
-            return this.reqEventHandler.createRequestHandlers(this);
+            return this.reqEventHandler.createRequestHandlers();
+        }
+        subscribe (subscriber, status) {
+            if (status) {
+                this._subscribers.add(subscriber);
+            } else {
+                this._subscribers.delete(subscriber);
+            }
+        }
+        hasSubscribers () {
+            return this._subscribers.size > 0;
         }
         /**
          * @method findLayerByOLLayer
@@ -118,8 +129,10 @@ Oskari.clazz.defineES('Oskari.wfsmvt.WfsMvtLayerPlugin',
                 layer.setFields(fields);
                 this.setLayerLocales(layer);
             }
-            this.reqEventHandler.notify('WFSPropertiesEvent', layer, layer.getLocales(), fields);
-            this.reqEventHandler.notify('WFSFeatureEvent', layer, properties.length ? properties[properties.length - 1] : []);
+            if (this.hasSubscribers()) {
+                this.reqEventHandler.notify('WFSPropertiesEvent', layer, layer.getLocales(), fields);
+                this.reqEventHandler.notify('WFSFeatureEvent', layer, properties.length ? properties[properties.length - 1] : []);
+            }
         }
         /**
          * @method setLayerLocales

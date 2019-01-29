@@ -522,10 +522,8 @@ Oskari.clazz.define('Oskari.mapframework.bundle.featuredata2.FeatureDataBundleIn
          */
         createUi: function () {
             this.plugins['Oskari.userinterface.Flyout'].createUi();
-            var mapModule = this.sandbox.findRegisteredModuleInstance('MainMapModule'),
-                plugin = Oskari.clazz.create('Oskari.mapframework.bundle.featuredata2.plugin.FeaturedataPlugin', {
-                    instance: this
-                });
+            var mapModule = this.sandbox.findRegisteredModuleInstance('MainMapModule');
+            var plugin = Oskari.clazz.create('Oskari.mapframework.bundle.featuredata2.plugin.FeaturedataPlugin', { instance: this });
             mapModule.registerPlugin(plugin);
             mapModule.startPlugin(plugin);
             this.plugin = plugin;
@@ -536,6 +534,14 @@ Oskari.clazz.define('Oskari.mapframework.bundle.featuredata2.FeatureDataBundleIn
             }
 
             this.mapModule = mapModule;
+        },
+
+        subscribeWFSRequests: function (subscribe = true) {
+            this.sandbox.postRequestByName('SubscribeRequest', [this, 'WFSPropertiesEvent', subscribe]);
+            this.sandbox.postRequestByName('SubscribeRequest', [this, 'WFSFeatureEvent', subscribe]);
+        },
+        unsubscribeWFSRequests: function () {
+            this.subscribeWFSRequests(false);
         }
     }, {
         /**

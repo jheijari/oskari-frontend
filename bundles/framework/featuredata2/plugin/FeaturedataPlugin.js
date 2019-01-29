@@ -115,6 +115,7 @@ Oskari.clazz.define('Oskari.mapframework.bundle.featuredata2.plugin.FeaturedataP
                 me._element = me._createControlElement();
                 this.addToPluginContainer(me._element);
                 this.refresh();
+                me._instance.subscribeWFSRequests();
             }
         },
 
@@ -181,6 +182,7 @@ Oskari.clazz.define('Oskari.mapframework.bundle.featuredata2.plugin.FeaturedataP
             var flyout = me._instance.plugins['Oskari.userinterface.Flyout'];
             jQuery(flyout.container.parentElement.parentElement).removeClass('mobile');
             me._resetMobileIcon(el, me._mobileDefs.buttons['mobile-featuredata'].iconCls);
+            me._instance.unsubscribeWFSRequests();
         },
         /**
          * @method refresh

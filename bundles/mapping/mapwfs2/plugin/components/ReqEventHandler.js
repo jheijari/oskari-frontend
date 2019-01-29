@@ -3,12 +3,14 @@ import {propsAsArray, WFS_ID_KEY, WFS_FTR_ID_KEY} from './propertyArrayUtils';
 import {filterByAttribute, getFilterAlternativesAsArray} from './filterUtils';
 
 export default class ReqEventHandler {
-    constructor (sandbox) {
+    constructor (sandbox, plugin) {
         this.sandbox = sandbox;
+        this.plugin = plugin;
         this.isClickResponsive = true;
     }
-    createEventHandlers (plugin) {
+    createEventHandlers () {
         const me = this;
+        const plugin = this.plugin;
         const modifySelection = (layer, featureIds, keepPrevious) => {
             plugin.WFSLayerService.setWFSFeaturesSelections(layer.getId(), featureIds, !keepPrevious);
             this.notify('WFSFeaturesSelectedEvent', plugin.WFSLayerService.getSelectedFeatureIds(layer.getId()), layer, false);
@@ -46,6 +48,9 @@ export default class ReqEventHandler {
                 });
             },
             'AfterMapMoveEvent': () => {
+                if (!plugin.hasSubscribers()) {
+                    return;
+                }
                 plugin.getAllLayerIds().forEach(layerId => {
                     const layer = getSelectedLayer(layerId);
                     plugin.updateLayerProperties(layer);
@@ -100,13 +105,24 @@ export default class ReqEventHandler {
         }
         this.sandbox.notifyAll(builder.apply(null, args));
     }
-    createRequestHandlers (plugin) {
+    createRequestHandlers () {
         return {
-            'WfsLayerPlugin.ActivateHighlightRequest': this
+            'WfsLayerPlugin.ActivateHighlightRequest': this,
+            'SubscribeRequest': this
         };
     }
-    // handle WfsLayerPlugin.ActivateHighlightRequest
+
     handleRequest (oskariCore, request) {
-        this.isClickResponsive = request.isEnabled();
+        const name = request.getName();
+        if (name === 'WfsLayerPlugin.ActivateHighlightRequest') {
+            this.isClickResponsive = request.isEnabled();
+            return;
+        }
+        if (name === 'SubscribeRequest') {
+            const eventName = request.getEventName();
+            if (eventName === 'WFSPropertiesEvent' || eventName === 'WFSFeatureEvent') {
+                this.plugin.subscribe(request.getSubscriber(), request.getSubscriptionStatus());
+            }
+        }
     }
 }
