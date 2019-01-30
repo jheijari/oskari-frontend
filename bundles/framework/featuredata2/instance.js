@@ -343,8 +343,10 @@ Oskari.clazz.define('Oskari.mapframework.bundle.featuredata2.FeatureDataBundleIn
              */
             'WFSPropertiesEvent': function (event) {
                 // update grid information [don't update the grid if not active]
-                var layer = event.getLayer();
-                this.plugins['Oskari.userinterface.Flyout'].updateData(layer);
+                var flyout = this.plugins['Oskari.userinterface.Flyout'];
+                if (flyout.isActive()) {
+                    flyout.updateData(event.getLayer());
+                }
             },
 
             /**
@@ -353,8 +355,10 @@ Oskari.clazz.define('Oskari.mapframework.bundle.featuredata2.FeatureDataBundleIn
              */
             'WFSFeatureEvent': function (event) {
                 // update grid information [don't update the grid if not active]
-                var layer = event.getLayer();
-                this.plugins['Oskari.userinterface.Flyout'].updateData(layer);
+                var flyout = this.plugins['Oskari.userinterface.Flyout'];
+                if (flyout.isActive()) {
+                    flyout.updateData(event.getLayer());
+                }
             },
 
             /**
@@ -536,12 +540,9 @@ Oskari.clazz.define('Oskari.mapframework.bundle.featuredata2.FeatureDataBundleIn
             this.mapModule = mapModule;
         },
 
-        subscribeWFSRequests: function (subscribe = true) {
+        subscribeWFSEvents: function (subscribe = true) {
             this.sandbox.postRequestByName('SubscribeRequest', [this, 'WFSPropertiesEvent', subscribe]);
             this.sandbox.postRequestByName('SubscribeRequest', [this, 'WFSFeatureEvent', subscribe]);
-        },
-        unsubscribeWFSRequests: function () {
-            this.subscribeWFSRequests(false);
         }
     }, {
         /**

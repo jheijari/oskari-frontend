@@ -34,7 +34,14 @@ Oskari.clazz.defineES('Oskari.wfsmvt.WfsMvtLayerPlugin',
         }
         subscribe (subscriber, status) {
             if (status) {
+                const updateProps = !this.hasSubscribers();
                 this._subscribers.add(subscriber);
+                if (updateProps) {
+                    this.getAllLayerIds().forEach(layerId => {
+                        const layer = this.getSandbox().getMap().getSelectedLayer(layerId);
+                        // this.updateLayerProperties(layer);
+                    });
+                }
             } else {
                 this._subscribers.delete(subscriber);
             }
@@ -131,7 +138,6 @@ Oskari.clazz.defineES('Oskari.wfsmvt.WfsMvtLayerPlugin',
             }
             if (this.hasSubscribers()) {
                 this.reqEventHandler.notify('WFSPropertiesEvent', layer, layer.getLocales(), fields);
-                this.reqEventHandler.notify('WFSFeatureEvent', layer, properties.length ? properties[properties.length - 1] : []);
             }
         }
         /**

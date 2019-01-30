@@ -132,6 +132,10 @@ Oskari.clazz.define(
 
         },
 
+        isActive: function () {
+            return !!this.active;
+        },
+
         /**
          * @method setState
          * @param {Object} state
@@ -983,8 +987,10 @@ Oskari.clazz.define(
             }
 
             this.active = !!isEnabled;
-            var sandbox = this.instance.sandbox,
-                request;
+            var sandbox = this.instance.sandbox;
+            var request;
+
+            this.instance.subscribeWFSEvents(isEnabled);
 
             // feature info activation disabled if object data grid flyout active and vice versa
             var gfiReqBuilder = Oskari.requestBuilder(
