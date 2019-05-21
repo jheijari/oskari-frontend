@@ -23,6 +23,8 @@ export class VectorLayerHandler extends AbstractLayerHandler {
     constructor (layerPlugin) {
         super(layerPlugin);
         this.loadingStrategies = {};
+        this.simpleGeoms = {};
+        this.fullGeoms = {};
     }
     createEventHandlers () {
         const handlers = super.createEventHandlers();
@@ -115,6 +117,16 @@ export class VectorLayerHandler extends AbstractLayerHandler {
             })
         }));
     }
+    _useSimplifiedGeoms (layer) {
+        this.simpleGeoms['' + layer.getId()].forEach((geom, ftr) => {
+            ftr.setGeometry(geom);
+        });
+    }
+    _useFullGeoms (layer) {
+        this.fullGeoms['' + layer.getId()].forEach((geom, ftr) => {
+            ftr.setGeometry(geom);
+        });
+    }
     /**
      * @private
      * @method _getFeatureLoader To get an ol loader impl for the layer.
@@ -124,6 +136,10 @@ export class VectorLayerHandler extends AbstractLayerHandler {
      */
     _getFeatureLoader (layer, source) {
         const counter = new RequestCounter();
+        const simpleGeomMap = this.simpleGeoms['' + layer.getId()] || new Map();
+        const fullGeomMap = this.fullGeoms['' + layer.getId()] || new Map();
+        this.simpleGeoms['' + layer.getId()] = simpleGeomMap;
+        this.fullGeoms['' + layer.getId()] = fullGeomMap;
         const updateLoadingStatus = status => {
             counter.update(status);
             this.tileLoadingStateChanged(layer.getId(), counter);
@@ -141,7 +157,11 @@ export class VectorLayerHandler extends AbstractLayerHandler {
                 url: Oskari.urls.getRoute('GetWFSFeatures'),
                 success: (resp) => {
                     const features = source.getFormat().readFeatures(resp);
-                    features.forEach(ftr => ftr.set(WFS_ID_KEY, ftr.getId()));
+                    features.forEach(ftr => {
+                        ftr.set(WFS_ID_KEY, ftr.getId());
+                        simpleGeomMap.set(ftr, ftr.getGeometry().simplify(1000));
+                        fullGeomMap.set(ftr, ftr.getGeometry());
+                    });
                     source.addFeatures(features);
                     this.updateLayerProperties(layer, source);
                     updateLoadingStatus(LOADING_STATUS_VALUE.COMPLETE);
