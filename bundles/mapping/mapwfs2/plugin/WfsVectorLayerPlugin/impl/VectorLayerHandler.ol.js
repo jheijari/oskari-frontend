@@ -19,8 +19,6 @@ import olMultiLineString from 'ol/geom/MultiLineString';
 import olMultiPolygon from 'ol/geom/MultiPolygon';
 import olGeometryCollection from 'ol/geom/GeometryCollection';
 
-import { getCenter as getOlExtentCenter } from 'ol/extent';
-
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader';
 import OL3Parser from 'jsts/org/locationtech/jts/io/OL3Parser';
 import RelateOp from 'jsts/org/locationtech/jts/operation/relate/RelateOp';
@@ -64,8 +62,7 @@ export class VectorLayerHandler extends AbstractLayerHandler {
                 }
             } else if (clustering) {
                 // Vector layer feature, hide points
-                const geomType = feature.getGeometry().getType();
-                if (geomType === 'Point' || geomType === 'MultiPoint') {
+                if (feature.getGeometry().getType() === 'Point') {
                     return null;
                 }
             }
@@ -114,18 +111,7 @@ export class VectorLayerHandler extends AbstractLayerHandler {
         if (this._isClusteringSupported() && layer.getClusteringDistance()) {
             const clusterSource = new olCluster({
                 distance: layer.getClusteringDistance(),
-                source,
-                geometryFunction: feature => {
-                    const geom = feature.getGeometry();
-                    if (geom instanceof olPoint) {
-                        return geom;
-                    }
-                    if (geom instanceof olMultiPoint) {
-                        const center = getOlExtentCenter(geom.getExtent());
-                        return new olPoint(center);
-                    }
-                    return null;
-                }
+                source
             });
             const clusterLayer = new olLayerVector({
                 opacity,
@@ -225,8 +211,13 @@ export class VectorLayerHandler extends AbstractLayerHandler {
                 },
                 url: Oskari.urls.getRoute('GetWFSFeatures'),
                 success: (resp) => {
-                    const features = source.getFormat().readFeatures(resp);
-                    features.forEach(ftr => ftr.set(WFS_ID_KEY, ftr.getId()));
+                    let features = source.getFormat().readFeatures(resp).map(ftr => {
+                        ftr.set(WFS_ID_KEY, ftr.getId());
+                        return ftr;
+                    });
+                    if (this._isClusteringSupported() && layer.getClusteringDistance()) {
+                        features = this._disintegreateMultiPoints(features);
+                    }
                     source.addFeatures(features);
                     this.updateLayerProperties(layer, source);
                     updateLoadingStatus(LOADING_STATUS_VALUE.COMPLETE);
@@ -235,6 +226,32 @@ export class VectorLayerHandler extends AbstractLayerHandler {
             });
         };
     }
+
+    /**
+     * Break multipoints apart to enable clustering.
+     *
+     * @param {olFeature[]} features
+     * @return {olFeature[]} new feature array with operated features
+     */
+    _disintegreateMultiPoints (features) {
+        const ftrs = [];
+        features.forEach(ftr => {
+            ftr.set(WFS_ID_KEY, ftr.getId());
+            if (ftr.getGeometry() instanceof olMultiPoint) {
+                ftr.getGeometry().getPoints().forEach((pointGeom, i) => {
+                    const ptFeature = ftr.clone();
+                    ptFeature.setGeometry(pointGeom);
+                    ptFeature.setId(ftr.getId() + 'clone' + i);
+                    ptFeature.set(WFS_ID_KEY, ftr.getId());
+                    ftrs.push(ptFeature);
+                });
+                return;
+            }
+            ftrs.push(ftr);
+        });
+        return ftrs;
+    }
+
     /**
      * @private
      * @method _loadFeaturesForAllLayers Load features to all wfs layers.
