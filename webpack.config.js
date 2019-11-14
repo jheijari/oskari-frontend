@@ -55,10 +55,6 @@ module.exports = (env, argv) => {
     if (isProd) {
         config.optimization = {
             minimizer: [
-                new UglifyJsPlugin({
-                    sourceMap: false,
-                    parallel: true
-                }),
                 new OptimizeCSSAssetsPlugin({})
             ]
         };
