@@ -27,7 +27,8 @@ const StyledNumberInput = styled(NumberInput)`
 `;
 
 export const OpacitySlider = ({ value, onChange }) => {
-    const [sliderValue, setSliderValue] = useState(value);
+    const numericValue = typeof value === 'number' ? value : parseInt(value);
+    const [sliderValue, setSliderValue] = useState(numericValue);
     const [eventTimeout, setEventTimeout] = useState(null);
     const instantValueChange = val => {
         setSliderValue(val);
@@ -44,7 +45,7 @@ export const OpacitySlider = ({ value, onChange }) => {
         }
     };
     useEffect(() => {
-        setSliderValue(value);
+        setSliderValue(numericValue);
     }, [value]);
     return (
         <InputGroup compact>
